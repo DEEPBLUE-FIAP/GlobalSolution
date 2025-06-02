@@ -3,14 +3,20 @@ import random
 import os
 import json
 import time
-import requests #necessário para acessar a API do IBGE, instalar com `pip install requests`
+import requests
 from datetime import datetime
+from threading import Thread
+
 
 global login_status
 login_status = False  # Variável global para controlar o status de login
 
+
 def carregar_dados(arquivo: json) -> dict:
-    '''Carrega os dados de um arquivo JSON e retorna um dicionário.'''
+    '''
+    Carrega os dados de um arquivo JSON e retorna um dicionário.
+    Complexidade: O(n)
+    '''
     if os.path.exists(arquivo):
         with open(arquivo, 'r', encoding='utf-8') as file:
             try:
@@ -23,62 +29,98 @@ def carregar_dados(arquivo: json) -> dict:
                 return {}
     return {}
 
-def salvar_dados(dados: dict, arquivo: json):
-    '''Salva os dados em um arquivo JSON, solicitando como parâmetro o arquivo
-    e o dicionário a ser salvo.'''
+
+def salvar_dados(dados: dict, arquivo: json) -> None:
+    '''
+    Salva os dados em um arquivo JSON.
+    Complexidade: O(n)
+    '''
     with open(arquivo, 'w', encoding='utf-8') as file:
         json.dump(dados, file, indent=4)
 
-def cadastro_usuario():
+def usuario_id(dados: dict) -> str:
+    '''
+    Gera um ID único para o usuário.
+    Complexidade: O(n)
+    '''
+    id_usuario = str(random.randint(1000, 9999))
+    while id_usuario in dados:
+        id_usuario = str(random.randint(1000, 9999))
+    return id_usuario
+
+
+def cadastro_usuario() -> None:
+    '''
+    Cadastro de usuário com nome e senha.
+    Complexidade: O(1) para inserção + O(n) para verificação opcional de duplicata
+    Retorno: None
+    '''
     global login_status
-    '''Cadastro de Usuário que pede nome e senha, validando a senha.'''
     print("Cadastro de Usuário")
     if not login_status:
         nome = input("Digite o nome do usuário: ").strip().title()
 
         while True:
-            senha = input("Digite a senha do usuário: ")
+            senha = input("Digite a senha do usuário (mínimo 8 caracteres): ")
             if len(senha) < 8:
                 print("A senha deve ter pelo menos 8 caracteres.")
-                os.system('cls' if os.name == 'nt' else 'clear')
             else:
                 break
 
-        usuario = {
+
+        usuarios = carregar_dados('usuarios.json')
+        
+
+        # Verifica se o nome de usuário já existe
+        for user in usuarios.values():
+            if user['nome'] == nome:
+                print("Usuário já existe. Escolha outro nome.")
+                return
+
+        id_usuario = usuario_id(usuarios)
+        usuarios[id_usuario] = {
             'nome': nome,
             'senha': senha
         }
-        login_status = True  # Atualiza o status de login para True
-        salvar_dados(usuario, 'usuarios.json')  # sobrescreve tudo com esse novo dicionário
+        salvar_dados(usuarios, 'usuarios.json')
+        login_status = True
         print(f"Usuário {nome} cadastrado com sucesso!")
     else:
-        print("Você já está logado. Faça logout para cadastrar um novo usuário.")
-        print("Para fazer logout, reinicie o programa.")
+        print("Você já está logado. Reinicie o programa para cadastrar outro usuário.")
 
-def login_usuario():
+
+def login_usuario() -> None:
+    '''
+    Login de usuário validando nome e senha.
+    Complexidade: O(n)
+    '''
     global login_status
-    '''Login de Usuário que pede nome e senha, validando se o usuário existe.'''
     print("Login de Usuário")
     if not login_status:
         nome = input("Digite o nome do usuário: ").strip().title()
         senha = input("Digite a senha do usuário: ")
 
-        usuarios = carregar_dados('usuarios.json') or []  # se carregar_dados retornar None ou {}, vira []
+        usuarios = carregar_dados('usuarios.json')
+        if not usuarios:
+            print("Nenhum usuário cadastrado ainda.")
+            return
 
-        for usuario in usuarios:
-            if 'nome' in usuario and 'senha' in usuario:
-                if usuario['nome'] == nome and usuario['senha'] == senha:
-                    print(f"Login realizado com sucesso! Bem-vindo, {nome}.")
-                    login_status = True  # Atualiza o status de login para True
-                    return
+        for usuario in usuarios.values():
+            if usuario['nome'] == nome and usuario['senha'] == senha:
+                print(f"Login realizado com sucesso! Bem-vindo, {nome}.")
+                login_status = True
+                return
 
         print("Nome de usuário ou senha incorretos.")
     else:
         print("Você já está logado.")
-        print("Para fazer logout, reinicie o programa.")
 
-def ocorrencia_aleatoria():
-    '''Gera uma ocorrência aleatória e salva em notificacoes.json'''
+
+def ocorrencia_aleatoria() -> None:
+    '''
+    Gera uma ocorrência aleatória baseada na API do IBGE.
+    Complexidade: O(n)
+    '''
     try:
         response = requests.get("https://servicodados.ibge.gov.br/api/v1/localidades/municipios")
         if response.status_code == 200:
@@ -102,20 +144,31 @@ def ocorrencia_aleatoria():
             id_ocorrencia = str(random.randint(1000, 9999))
             while id_ocorrencia in notificacoes:
                 id_ocorrencia = str(random.randint(1000, 9999))
-
-            notificacoes[id_ocorrencia] = nova_ocorrencia
+            if nivel_perigosidade >= 4:
+                notificacoes[id_ocorrencia] = nova_ocorrencia
             ocorrencias[id_ocorrencia] = nova_ocorrencia
             salvar_dados(ocorrencias, 'ocorrencias.json')
             salvar_dados(notificacoes, 'notificacoes.json')
-        else:
-            print("Erro ao acessar API do IBGE.")
     except Exception as e:
         print(f"Erro ao gerar ocorrência: {e}")
-     
-def cadastrar_ocorrencia():
-    '''Cadastro de Ocorrência que pede local, data e gera um nível de perigosidade aleatório.'''
+
+
+def loop_ocorrencia_aleatoria() -> None:
+    '''
+    Loop que gera ocorrências aleatórias a cada 3 segundos.
+    '''
+    while True:
+        ocorrencia_aleatoria()
+        time.sleep(3)
+
+
+def cadastrar_ocorrencia() -> None:
+    '''
+    Cadastro manual de ocorrência.
+    Complexidade: O(n)
+    '''
     print("Cadastro de Ocorrência")
-    if not login_status:
+    if  login_status:
         local = input("Digite o local da ocorrência: ").strip().title()
         data = input("Digite a data da ocorrência (DD/MM/AAAA): ").strip()
         nivel_perigosidade = random.randint(1, 5)
@@ -128,14 +181,18 @@ def cadastrar_ocorrencia():
         }
         ocorrencias[str(random.randint(1000, 9999))] = nova_ocorrencia
         salvar_dados(ocorrencias, 'ocorrencias.json')
-        print(f"Ocorrência cadastrada com sucesso no local {local} com nível de perigosidade {nivel_perigosidade}.")
+        print(f"Ocorrência cadastrada com sucesso no local {local} com nível {nivel_perigosidade}.")
     else:
-        print("Você já está logado. Faça logout para cadastrar uma nova ocorrência.")
+        print("Você não está logado.")
 
-def checar_ocorrencias():
-    '''Verifica as ocorrências cadastradas, mostrando local, data e nível de perigosidade.'''
+
+def checar_ocorrencias(arquivo: json) -> None:
+    '''
+    Exibe todas as ocorrências salvas.
+    Complexidade: O(n)
+    '''
     print("Verificação de Ocorrências")
-    ocorrencias = carregar_dados('ocorrencias.json')
+    ocorrencias = carregar_dados(arquivo)
     if not ocorrencias:
         print("Nenhuma ocorrência cadastrada.")
     else:
@@ -147,72 +204,78 @@ def checar_ocorrencias():
             print(f"Nível de Perigosidade: {ocorrencia['nivel_perigosidade']}")
             print('-' * 30)
 
-def busca_binaria(ocorrencias, nivel_alvo):
+
+def busca_binaria(ocorrencias: list, nivel_alvo: int) -> int:
+    '''
+    Busca binária por nível de perigosidade.
+    Complexidade: O(log n)
+    '''
     esquerda = 0
     direita = len(ocorrencias) - 1
 
     while esquerda <= direita:
         meio = (esquerda + direita) // 2
-        _, dados = ocorrencias[meio]  # acessa a tupla (id, dados)
+        _, dados = ocorrencias[meio]
         nivel = dados['nivel_perigosidade']
         
         if nivel == nivel_alvo:
-            return meio  # Retorna o índice da ocorrência
+            return meio
         elif nivel < nivel_alvo:
             esquerda = meio + 1
         else:
             direita = meio - 1
     return -1
 
-def notificacao_usuario():
-    '''Função que serve para notificar o usuário sobre as ocorrências mais perigosas.'''
+
+def notificacao_usuario() -> None:
+    '''
+    Notifica usuário sobre ocorrências de níveis máximo.
+    Complexidade: O(n log n)
+    '''
     ocorrencias = carregar_dados('notificacoes.json')
     if not ocorrencias:
-        print("Nenhuma ocorrência cadastrada.")
-        time.sleep(5)
+        return
 
-        
-    # Transformar em lista de tuplas (id, ocorrencia), para manter referência à chave
     ocorrencias_ordenadas = sorted(
         ocorrencias.items(), 
         key=lambda item: item[1]['nivel_perigosidade']
     )
 
-    nivel_desejado = 5  # nível mais perigoso
-
-    # Busca binária adaptada para lista de tuplas
-    index = busca_binaria(ocorrencias_ordenadas, nivel_desejado)
+    index = busca_binaria(ocorrencias_ordenadas, 5)
 
     if index != -1:
         chave, ocorrencia = ocorrencias_ordenadas[index]
-        print(f"[ALERTA MÁXIMO] Ocorrência perigosa detectada!")
+        print(f"\n[ALERTA MÁXIMO] Ocorrência perigosa detectada!")
         print(f"Local: {ocorrencia['local']}")
         print(f"Data: {ocorrencia['data']}")
-        print(f"Nível de Perigosidade: {ocorrencia['nivel_perigosidade']}")
+        print(f"Nível de Perigosidade: {ocorrencia['nivel_perigosidade']}\n")
 
-        # Remover a ocorrência do dicionário original
         ocorrencias.pop(chave)
-
-        # Salvar dados atualizados no arquivo
         salvar_dados(ocorrencias, 'notificacoes.json')
+        time.sleep(5)  # Pausa para visualização da notificação
+        limpar_tela()
 
-    else:
-        print(f"Nenhuma ocorrência com nível {nivel_desejado} encontrada.")
-        
-    print("Aguardando nova verificação...\n")
-    time.sleep(5)
 
-def menu():
-    usuarios = carregar_dados('usuarios.json')
+def limpar_tela() -> None:
+    '''
+    Limpa a tela do terminal.
+    '''
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+
+def menu() -> None:
+    '''
+    Menu principal do sistema.
+    '''
     while True:
-        ocorrencia_aleatoria()  #Gera uma ocorrência aleatória a cada iteração
-        notificacao_usuario()  #sistema de notificação
+        notificacao_usuario()
         print("\nMenu Principal")
         print("1. Cadastrar Usuário")
         print("2. Login de Usuário")
         print("3. Cadastrar Ocorrência")
         print("4. Verificar Ocorrências")
-        print("5. Sair")
+        print("5. Notificações de Ocorrências Perigosas")
+        print("6. Sair")
         
         escolha = input("Escolha uma opção: ")
         match escolha:
@@ -223,12 +286,19 @@ def menu():
             case '3':
                 cadastrar_ocorrencia()
             case '4':
-                checar_ocorrencias()
+                checar_ocorrencias('ocorrencias.json')
             case '5':
+                checar_ocorrencias('notificacoes.json')
+            case '6':
                 print("Saindo do sistema...")
                 break
             case _:
                 print("Opção inválida, tente novamente.")
 
 if __name__ == "__main__":
+    # Inicia thread para gerar ocorrências em tempo real
+    thread = Thread(target=loop_ocorrencia_aleatoria, daemon=True)
+    thread.start()
+
+    # Inicia o menu
     menu()
