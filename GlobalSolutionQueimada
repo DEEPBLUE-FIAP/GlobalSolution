@@ -3,7 +3,7 @@ import random
 import os
 import json
 import time
-import requests
+import requests 
 from datetime import datetime
 from threading import Thread
 
@@ -131,12 +131,12 @@ def ocorrencia_aleatoria() -> None:
             local = f"{nome_cidade}/{uf}"
             
             data = datetime.now().strftime("%d/%m/%Y")
-            nivel_perigosidade = random.randint(1, 5)
+            nivel_de_perigo = random.randint(1, 5)
             
             nova_ocorrencia = {
                 'local': local,
                 'data': data,
-                'nivel_perigosidade': nivel_perigosidade
+                'nivel_de_perigo': nivel_de_perigo
             }
 
             notificacoes = carregar_dados('notificacoes.json')
@@ -144,7 +144,7 @@ def ocorrencia_aleatoria() -> None:
             id_ocorrencia = str(random.randint(1000, 9999))
             while id_ocorrencia in notificacoes:
                 id_ocorrencia = str(random.randint(1000, 9999))
-            if nivel_perigosidade >= 4:
+            if nivel_de_perigo >= 4:
                 notificacoes[id_ocorrencia] = nova_ocorrencia
             ocorrencias[id_ocorrencia] = nova_ocorrencia
             salvar_dados(ocorrencias, 'ocorrencias.json')
@@ -170,18 +170,18 @@ def cadastrar_ocorrencia() -> None:
     print("Cadastro de Ocorrência")
     if  login_status:
         local = input("Digite o local da ocorrência: ").strip().title()
-        data = input("Digite a data da ocorrência (DD/MM/AAAA): ").strip()
-        nivel_perigosidade = random.randint(1, 5)
+        data = datetime.now().strftime("%d/%m/%Y")
+        nivel_de_perigo = random.randint(1, 5)
         
         ocorrencias = carregar_dados('ocorrencias.json')
         nova_ocorrencia = {
             'local': local,
             'data': data,
-            'nivel_perigosidade': nivel_perigosidade
+            'nivel_de_perigo': nivel_de_perigo
         }
         ocorrencias[str(random.randint(1000, 9999))] = nova_ocorrencia
         salvar_dados(ocorrencias, 'ocorrencias.json')
-        print(f"Ocorrência cadastrada com sucesso no local {local} com nível {nivel_perigosidade}.")
+        print(f"Ocorrência cadastrada com sucesso no local {local} com nível {nivel_de_perigo}.")
     else:
         print("Você não está logado.")
 
@@ -201,13 +201,19 @@ def checar_ocorrencias(arquivo: json) -> None:
             print(f"ID: {id}")
             print(f"Local: {ocorrencia['local']}")
             print(f"Data: {ocorrencia['data']}")
-            print(f"Nível de Perigosidade: {ocorrencia['nivel_perigosidade']}")
+            print(f"Nível de Perigo: {ocorrencia['nivel_de_perigo']}")
             print('-' * 30)
+    
+    # Se for o arquivo de notificações, limpamos após exibição
+    if arquivo == 'notificacoes.json':
+        salvar_dados({}, 'notificacoes.json')
+        print("\n✅ Todas as notificações foram limpas após a visualização.")
+        time.sleep(6)  # Pausa para visualização antes de limpar a tela
 
 
 def busca_binaria(ocorrencias: list, nivel_alvo: int) -> int:
     '''
-    Busca binária por nível de perigosidade.
+    Busca binária por nível de perigo.
     Complexidade: O(log n)
     '''
     esquerda = 0
@@ -216,7 +222,7 @@ def busca_binaria(ocorrencias: list, nivel_alvo: int) -> int:
     while esquerda <= direita:
         meio = (esquerda + direita) // 2
         _, dados = ocorrencias[meio]
-        nivel = dados['nivel_perigosidade']
+        nivel = dados['nivel_de_perigo']
         
         if nivel == nivel_alvo:
             return meio
@@ -232,13 +238,14 @@ def notificacao_usuario() -> None:
     Notifica usuário sobre ocorrências de níveis máximo.
     Complexidade: O(n log n)
     '''
+    limpar_tela()
     ocorrencias = carregar_dados('notificacoes.json')
     if not ocorrencias:
         return
 
     ocorrencias_ordenadas = sorted(
         ocorrencias.items(), 
-        key=lambda item: item[1]['nivel_perigosidade']
+        key=lambda item: item[1]['nivel_de_perigo']
     )
 
     index = busca_binaria(ocorrencias_ordenadas, 5)
@@ -248,7 +255,7 @@ def notificacao_usuario() -> None:
         print(f"\n[ALERTA MÁXIMO] Ocorrência perigosa detectada!")
         print(f"Local: {ocorrencia['local']}")
         print(f"Data: {ocorrencia['data']}")
-        print(f"Nível de Perigosidade: {ocorrencia['nivel_perigosidade']}\n")
+        print(f"Nível de Perigo: {ocorrencia['nivel_de_perigo']}\n")
 
         ocorrencias.pop(chave)
         salvar_dados(ocorrencias, 'notificacoes.json')
@@ -265,19 +272,35 @@ def limpar_tela() -> None:
 
 def menu() -> None:
     '''
-    Menu principal do sistema.
+    Menu principal do sistema com interface mais amigável.
     '''
+    global login_status
     while True:
-        notificacao_usuario()
-        print("\nMenu Principal")
-        print("1. Cadastrar Usuário")
-        print("2. Login de Usuário")
-        print("3. Cadastrar Ocorrência")
-        print("4. Verificar Ocorrências")
-        print("5. Notificações de Ocorrências Perigosas")
-        print("6. Sair")
+        time.sleep(2) # Pausa para visualização da tela anterior
+        if login_status:
+            notificacao_usuario()       
+        limpar_tela()
+        print("="*50)
+        print("        🛡️  SISTEMA DE OCORRÊNCIAS AO VIVO 🛡️")
+        print("="*50)
+        print("Bem-vindo! Escolha uma das opções abaixo:\n")
+        print("1. 👤 Cadastrar Usuário")
+        print("   ➤ Crie um novo usuário para acessar o sistema.")
+        print("2. 🔐 Login de Usuário")
+        print("   ➤ Acesse sua conta com nome e senha.")
+        print("3. 📝 Cadastrar Ocorrência")
+        print("   ➤ Registre manualmente uma nova ocorrência.")
+        print("4. 📂 Verificar Ocorrências")
+        print("   ➤ Veja todas as ocorrências registradas.")
+        print("5. 🚨 Notificações de Perigo")
+        print("   ➤ Consulte apenas as ocorrências perigosas (nível 4 ou 5).")
+        print("6. ❌ Sair do Sistema")
+        print("   ➤ Finaliza a execução do programa.")
+        print("-"*50)
         
-        escolha = input("Escolha uma opção: ")
+        escolha = input("Digite o número da opção desejada: ").strip()
+        print()  # Espaço visual
+
         match escolha:
             case '1':
                 cadastro_usuario()
@@ -286,14 +309,23 @@ def menu() -> None:
             case '3':
                 cadastrar_ocorrencia()
             case '4':
-                checar_ocorrencias('ocorrencias.json')
+                if login_status:
+                    checar_ocorrencias('ocorrencias.json')
+                else:
+                    print("Você precisa estar logado para verificar ocorrências.")
             case '5':
-                checar_ocorrencias('notificacoes.json')
+                if login_status:
+                    checar_ocorrencias('notificacoes.json')
+                else:
+                    print("Você precisa estar logado para verificar notificações.")
             case '6':
-                print("Saindo do sistema...")
+                print("Encerrando o sistema... Até logo!")
                 break
             case _:
-                print("Opção inválida, tente novamente.")
+                print("⚠️ Opção inválida. Tente novamente.")
+                time.sleep(2)
+
+
 
 if __name__ == "__main__":
     # Inicia thread para gerar ocorrências em tempo real
