@@ -263,6 +263,31 @@ def notificacao_usuario() -> None:
         time.sleep(5)  # Pausa para visualização da notificação
         limpar_tela()
 
+def mostrar_sobre_sistema():
+    texto = """
+    Sobre o Sistema:
+
+    Este aplicativo foi desenvolvido por três colaboradores: Fernando Carlos, Pedro Henrique Silva Batista e Juan Fuentes Rufino.
+
+    O objetivo principal do sistema é propor uma solução tecnológica frente ao crescente aumento dos focos de queimada sem causas aparentes. 
+    Após extensas análises de dados globais relacionados a incêndios florestais — com base em um conjunto de dados robusto contendo mais de um milhão de amostras — 
+    foi possível identificar dois pontos críticos:
+
+    1. Um aumento expressivo nas queimadas provocadas por ação humana, porém sem justificativa clara;
+    2. Os impactos diretos dessas ocorrências não apenas sobre o meio ambiente, mas também sobre a saúde da população.
+
+    Diante desse cenário, desenvolvemos um aplicativo que visa integrar e proteger as comunidades que vivem próximas a regiões afetadas. 
+    Entre suas principais funcionalidades, destacam-se:
+
+    - Notificação em tempo real de áreas com risco iminente de incêndio;
+    - Uma aba social para que usuários possam registrar ou consultar ocorrências;
+    - Acesso a todas as notificações e registros públicos feitos pela comunidade.
+
+    Além disso, os dados inseridos pelos próprios usuários auxiliam no aprimoramento dos sensores, enriquecem a base de dados e fortalecem a 
+    aplicação de modelos preditivos. Dessa forma, o sistema contribui significativamente tanto para a prevenção de desastres quanto para a preservação ambiental e o bem-estar coletivo.
+    """
+    print(texto)
+
 
 def limpar_tela() -> None:
     '''
@@ -295,7 +320,9 @@ def menu() -> None:
         print("   ➤ Veja todas as ocorrências registradas.\n")
         print("5. 🚨 Notificações de Perigo")
         print("   ➤ Consulte apenas as ocorrências perigosas (nível 4 ou 5).\n")
-        print("6. ❌ Sair do Sistema")
+        print("6. ℹ️ Para saber mais sobre o app")
+        print("   ➤ Informações sobre o sistema e seus objetivos.\n")
+        print("7. ❌ Sair do Sistema")
         print("   ➤ Finaliza a execução do programa.\n")
         print("-"*50)
         
@@ -320,6 +347,8 @@ def menu() -> None:
                 else:
                     print("Você precisa estar logado para verificar notificações.")
             case '6':
+                print("penis")
+            case '7':
                 print("Encerrando o sistema... Até logo!")
                 break
             case _:
