@@ -207,8 +207,9 @@ def checar_ocorrencias(arquivo: json) -> None:
     # Se for o arquivo de notificações, limpamos após exibição
     if arquivo == 'notificacoes.json':
         salvar_dados({}, 'notificacoes.json')
-        print("\n✅ Todas as notificações foram limpas após a visualização.")
-        time.sleep(6)  # Pausa para visualização antes de limpar a tela
+        print("\n✅ Todas as notificações foram limpas após a visualização.")   
+
+    input("Pressione Enter para voltar ao menu...") #Em vez de time.sleep, usamos input para esperar o usuário ler as ocorrências no seu tempo
 
 
 def busca_binaria(ocorrencias: list, nivel_alvo: int) -> int:
@@ -285,17 +286,17 @@ def menu() -> None:
         print("="*50)
         print("Bem-vindo! Escolha uma das opções abaixo:\n")
         print("1. 👤 Cadastrar Usuário")
-        print("   ➤ Crie um novo usuário para acessar o sistema.")
+        print("   ➤ Crie um novo usuário para acessar o sistema.\n")
         print("2. 🔐 Login de Usuário")
-        print("   ➤ Acesse sua conta com nome e senha.")
+        print("   ➤ Acesse sua conta com nome e senha.\n")
         print("3. 📝 Cadastrar Ocorrência")
-        print("   ➤ Registre manualmente uma nova ocorrência.")
+        print("   ➤ Registre manualmente uma nova ocorrência.\n")
         print("4. 📂 Verificar Ocorrências")
-        print("   ➤ Veja todas as ocorrências registradas.")
+        print("   ➤ Veja todas as ocorrências registradas.\n")
         print("5. 🚨 Notificações de Perigo")
-        print("   ➤ Consulte apenas as ocorrências perigosas (nível 4 ou 5).")
+        print("   ➤ Consulte apenas as ocorrências perigosas (nível 4 ou 5).\n")
         print("6. ❌ Sair do Sistema")
-        print("   ➤ Finaliza a execução do programa.")
+        print("   ➤ Finaliza a execução do programa.\n")
         print("-"*50)
         
         escolha = input("Digite o número da opção desejada: ").strip()
