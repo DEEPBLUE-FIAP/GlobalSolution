@@ -1,6 +1,11 @@
 Sistema de Ocorrências ao Vivo
 Este é um sistema em Python para simular o monitoramento de ocorrências com diferentes níveis de perigo, incluindo alertas automáticos e funcionalidades de cadastro e login de usuários. É uma aplicação voltada para o estudo e aplicação de algoritmos, uso de dicionários e análise de complexidade com notação O(grande).
 
+Integrantes: 
+Fernando Carlos RM558095
+Pedro Henrique Silva Batista RM558137
+Juan Fuentes Rufino RM55763.
+
 Funcionalidades
 
 CADASTRO E LOGIN
