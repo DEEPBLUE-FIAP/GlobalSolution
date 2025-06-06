@@ -263,7 +263,7 @@ def notificacao_usuario() -> None:
         time.sleep(5)  # Pausa para visualização da notificação
         limpar_tela()
 
-def mostrar_sobre_sistema():
+def mostrar_info_sistema():
     texto = """
     Sobre o Sistema:
 
@@ -287,6 +287,7 @@ def mostrar_sobre_sistema():
     aplicação de modelos preditivos. Dessa forma, o sistema contribui significativamente tanto para a prevenção de desastres quanto para a preservação ambiental e o bem-estar coletivo.
     """
     print(texto)
+    input("Pressione Enter para voltar ao menu...")
 
 
 def limpar_tela() -> None:
@@ -347,7 +348,7 @@ def menu() -> None:
                 else:
                     print("Você precisa estar logado para verificar notificações.")
             case '6':
-                print("penis")
+                mostrar_info_sistema()
             case '7':
                 print("Encerrando o sistema... Até logo!")
                 break
